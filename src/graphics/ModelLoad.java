@@ -1,6 +1,7 @@
 package graphics;
 
 import java.nio.FloatBuffer;
+import java.nio.IntBuffer;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -16,12 +17,13 @@ public class ModelLoad {
 	private List<Integer> vbos = new ArrayList<Integer>();
 	
 
-	public Model loadToVao(float[] positions) {
+	public Model loadToVao(float[] positions, int[] index) {
 		int vaoID = createVAO();
 		vaos.add(vaoID);
+		bindIndexBuffer(index);
 		dataAttribs(0, positions);
 		unbindVAO();
-		return new Model(vaoID, positions.length / 3);
+		return new Model(vaoID, index.length);
 	}
 	
 	private int createVAO() {
@@ -42,6 +44,21 @@ public class ModelLoad {
 	
 	private void unbindVAO() {
 		GL30.glBindVertexArray(0);
+	}
+	
+	private void bindIndexBuffer(int[] index) {
+		int vboID = GL15.glGenBuffers();
+		vbos.add(vboID);
+		GL15.glBindBuffer(GL15.GL_ELEMENT_ARRAY_BUFFER, vboID);
+		IntBuffer buffer = storeIntBuffer(index);
+		GL15.glBufferData(GL15.GL_ELEMENT_ARRAY_BUFFER, buffer, GL15.GL_STATIC_DRAW);
+	}
+	
+	private IntBuffer storeIntBuffer(int[] data) {
+		IntBuffer buffer = BufferUtils.createIntBuffer(data.length);
+		buffer.put(data);
+		buffer.flip();
+		return buffer;
 	}
 	
 	public void cleanModel() {
